@@ -35,62 +35,38 @@
           </div>
 
           <div class="math-card" aria-live="polite">
-            <div class="vertical-sum" aria-label="2けたどうしの足しざん">
-              <div class="carry-row" aria-label="くり上がりメモ">
-                <span id="carry-hundreds" class="carry-digit">&nbsp;</span>
-                <span id="carry-tens" class="carry-digit">&nbsp;</span>
-                <span id="carry-ones" class="carry-digit">&nbsp;</span>
+            <div class="hissan-workspace">
+              <div class="vertical-sum" aria-label="2けたどうしの足しざん">
+                <div class="carry-row" aria-hidden="true">
+                  <span class="carry-digit">&nbsp;</span>
+                  <span class="carry-digit">&nbsp;</span>
+                  <span class="carry-digit">&nbsp;</span>
+                </div>
+                <div class="number-row"><span aria-hidden="true">&nbsp;</span><span id="addend-a-tens">0</span><span id="addend-a-ones">0</span></div>
+                <div class="number-row plus-row"><span class="plus-sign">+</span><span aria-hidden="true">&nbsp;</span><span id="addend-b-tens">0</span><span id="addend-b-ones">0</span></div>
+                <div class="answer-line" aria-hidden="true"></div>
               </div>
-              <div class="number-row"><span aria-hidden="true">&nbsp;</span><span id="addend-a-tens">0</span><span id="addend-a-ones">0</span></div>
-              <div class="number-row plus-row"><span class="plus-sign">+</span><span aria-hidden="true">&nbsp;</span><span id="addend-b-tens">0</span><span id="addend-b-ones">0</span></div>
-              <div class="answer-line" aria-hidden="true"></div>
-              <div class="answer-preview" aria-label="こたえ">
-                <span id="preview-hundreds" class="preview-digit">&nbsp;</span>
-                <span id="preview-tens" class="preview-digit">&nbsp;</span>
-                <span id="preview-ones" class="preview-digit">?</span>
+              <div class="writing-pad-wrap">
+                <div>
+                  <strong>ひっさんメモ</strong>
+                  <p>ここに、ゆびやマウスで計算した数字を書こう。</p>
+                </div>
+                <button id="clear-writing-button" class="ghost-button" type="button">メモをけす</button>
+                <canvas id="writing-pad" class="writing-pad" width="720" height="220" aria-label="筆算の結果を書くスペース"></canvas>
               </div>
             </div>
 
             <form id="answer-form" class="answer-form">
-              <ol class="step-list" aria-label="やるじゅんばん">
-                <li id="step-ones" class="step-card active">
-                  <span class="step-number">1</span>
-                  <div>
-                    <strong>一のくらい</strong>
-                    <p id="ones-expression">0 + 0 = ?</p>
-                    <label for="answer-input">一のくらいにかくかず</label>
-                  </div>
-                </li>
-                <li id="step-carry" class="step-card">
-                  <span class="step-number">2</span>
-                  <div>
-                    <strong>くり上がりメモ</strong>
-                    <p id="carry-expression">くり上がりは？</p>
-                    <label for="answer-input">十のくらいの上にかくかず</label>
-                  </div>
-                </li>
-                <li id="step-tens" class="step-card">
-                  <span class="step-number">3</span>
-                  <div>
-                    <strong>十のくらい</strong>
-                    <p id="tens-expression">0 + 0 + 1 = ?</p>
-                    <label for="answer-input">十のくらいにかくかず</label>
-                  </div>
-                </li>
-                <li id="step-answer" class="step-card">
-                  <span class="step-number">4</span>
-                  <div>
-                    <strong>さいごのこたえ</strong>
-                    <p id="answer-expression">こたえをぜんぶかこう。</p>
-                    <label for="answer-input">こたえ</label>
-                  </div>
-                </li>
-              </ol>
-              <div class="answer-row">
-                <input id="answer-input" name="answer" type="number" min="0" max="199" inputmode="numeric" autocomplete="off" required />
-                <button id="answer-button" class="primary-button" type="submit">かく</button>
+              <div class="answer-card">
+                <strong>こたえを入力</strong>
+                <p>ひっさんメモで計算できたら、さいごの答えだけをここに入れてね。</p>
+                <label for="answer-input">こたえ</label>
+                <div class="answer-row">
+                  <input id="answer-input" name="answer" type="number" min="0" max="199" inputmode="numeric" autocomplete="off" required />
+                  <button id="answer-button" class="primary-button" type="submit">こたえる</button>
+                </div>
+                <p id="feedback" class="feedback" role="status">ひっさんメモに書いてから、こたえを入れよう。</p>
               </div>
-              <p id="feedback" class="feedback" role="status">まずは一のくらいからやろう。</p>
             </form>
           </div>
 

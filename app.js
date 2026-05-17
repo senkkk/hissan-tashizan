@@ -1,8 +1,6 @@
 const RUN_TARGET = 10;
 const STORAGE_KEY = 'hissanCollectorsDex';
 
-const steps = ['ones', 'carry', 'tens', 'answer'];
-
 const monsters = [
   { id: 'carrycub', name: 'くりあがリス', emoji: '🐿️', description: '1をとなりへはこぶのがとくいな、森のモンスター。' },
   { id: 'tenpuff', name: 'テンテンワタ', emoji: '☁️', description: '10のまとまりをふわふわあつめて、空にこたえをかくよ。' },
@@ -24,7 +22,6 @@ const els = {
   progressBar: document.querySelector('#progress-bar'),
   answerForm: document.querySelector('#answer-form'),
   answerInput: document.querySelector('#answer-input'),
-  answerButton: document.querySelector('#answer-button'),
   feedback: document.querySelector('#feedback'),
   newProblemButton: document.querySelector('#new-problem-button'),
   resetRunButton: document.querySelector('#reset-run-button'),
@@ -38,41 +35,23 @@ const els = {
   modalTitle: document.querySelector('#modal-title'),
   modalDescription: document.querySelector('#modal-description'),
   closeModalButton: document.querySelector('#close-modal-button'),
-  stepOnes: document.querySelector('#step-ones'),
-  stepCarry: document.querySelector('#step-carry'),
-  stepTens: document.querySelector('#step-tens'),
-  stepAnswer: document.querySelector('#step-answer'),
-  onesExpression: document.querySelector('#ones-expression'),
-  carryExpression: document.querySelector('#carry-expression'),
-  tensExpression: document.querySelector('#tens-expression'),
-  answerExpression: document.querySelector('#answer-expression'),
-  previewHundreds: document.querySelector('#preview-hundreds'),
-  previewTens: document.querySelector('#preview-tens'),
-  previewOnes: document.querySelector('#preview-ones'),
-  carryHundreds: document.querySelector('#carry-hundreds'),
-  carryTens: document.querySelector('#carry-tens'),
-  carryOnes: document.querySelector('#carry-ones'),
+  clearWritingButton: document.querySelector('#clear-writing-button'),
+  writingPad: document.querySelector('#writing-pad'),
   addendATens: document.querySelector('#addend-a-tens'),
   addendAOnes: document.querySelector('#addend-a-ones'),
   addendBTens: document.querySelector('#addend-b-tens'),
   addendBOnes: document.querySelector('#addend-b-ones')
 };
 
-const stepEls = {
-  ones: els.stepOnes,
-  carry: els.stepCarry,
-  tens: els.stepTens,
-  answer: els.stepAnswer
-};
-
 const state = {
   currentProblem: null,
-  currentStep: 'ones',
   streak: 0,
   ownedIds: loadDex(),
   lastRewardId: null,
-  work: { onesDigit: null, carry: null, tensDigit: null }
+  isDrawing: false
 };
+
+const drawingContext = els.writingPad.getContext('2d');
 
 function loadDex() {
   try {
@@ -100,22 +79,77 @@ function createCarryProblem() {
     b = randomInt(10, 99);
   } while ((a % 10) + (b % 10) < 10);
 
-  const answer = a + b;
-  const onesSum = (a % 10) + (b % 10);
-  const onesDigit = onesSum % 10;
-  const carry = Math.floor(onesSum / 10);
-  const tensSum = Math.floor(a / 10) + Math.floor(b / 10) + carry;
-  const tensDigit = tensSum % 10;
-
-  return { a, b, answer, onesSum, onesDigit, carry, tensSum, tensDigit };
+  return { a, b, answer: a + b };
 }
 
 function splitDigits(value) {
   return String(value).padStart(2, '0').split('');
 }
 
-function resetWork() {
-  state.work = { onesDigit: null, carry: null, tensDigit: null };
+function getCanvasPoint(event) {
+  const rect = els.writingPad.getBoundingClientRect();
+
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * els.writingPad.width,
+    y: ((event.clientY - rect.top) / rect.height) * els.writingPad.height
+  };
+}
+
+function drawGuideLines() {
+  drawingContext.save();
+  drawingContext.clearRect(0, 0, els.writingPad.width, els.writingPad.height);
+  drawingContext.strokeStyle = 'rgba(91, 124, 250, 0.16)';
+  drawingContext.lineWidth = 2;
+  drawingContext.setLineDash([10, 12]);
+
+  [0.33, 0.66].forEach((ratio) => {
+    const x = els.writingPad.width * ratio;
+    drawingContext.beginPath();
+    drawingContext.moveTo(x, 18);
+    drawingContext.lineTo(x, els.writingPad.height - 18);
+    drawingContext.stroke();
+  });
+
+  drawingContext.strokeStyle = 'rgba(21, 28, 48, 0.12)';
+  [0.5, 0.78].forEach((ratio) => {
+    const y = els.writingPad.height * ratio;
+    drawingContext.beginPath();
+    drawingContext.moveTo(18, y);
+    drawingContext.lineTo(els.writingPad.width - 18, y);
+    drawingContext.stroke();
+  });
+
+  drawingContext.restore();
+}
+
+function startDrawing(event) {
+  event.preventDefault();
+  state.isDrawing = true;
+  const point = getCanvasPoint(event);
+  drawingContext.beginPath();
+  drawingContext.moveTo(point.x, point.y);
+}
+
+function draw(event) {
+  if (!state.isDrawing) return;
+  event.preventDefault();
+  const point = getCanvasPoint(event);
+  drawingContext.lineTo(point.x, point.y);
+  drawingContext.stroke();
+}
+
+function stopDrawing() {
+  if (!state.isDrawing) return;
+  state.isDrawing = false;
+  drawingContext.closePath();
+}
+
+function setupWritingPad() {
+  drawingContext.lineWidth = 10;
+  drawingContext.lineCap = 'round';
+  drawingContext.lineJoin = 'round';
+  drawingContext.strokeStyle = '#151c30';
+  drawGuideLines();
 }
 
 function renderProblem() {
@@ -126,41 +160,8 @@ function renderProblem() {
   els.addendAOnes.textContent = aOnes;
   els.addendBTens.textContent = bTens;
   els.addendBOnes.textContent = bOnes;
-  els.onesExpression.textContent = `${aOnes} + ${bOnes} = ?`;
-  els.carryExpression.textContent = '10のまとまりは、十のくらいの上にかくよ。';
-  els.tensExpression.textContent = `${aTens} + ${bTens} + メモ = ?`;
-  els.answerExpression.textContent = '下にできたかずを、ぜんぶかこう。';
-  renderStep();
-}
-
-function renderStep() {
-  const currentIndex = steps.indexOf(state.currentStep);
-  const answerDigits = String(state.currentProblem.answer).padStart(3, ' ');
-
-  steps.forEach((step, index) => {
-    stepEls[step].classList.toggle('active', step === state.currentStep);
-    stepEls[step].classList.toggle('done', index < currentIndex);
-  });
-
-  els.carryHundreds.textContent = '\u00a0';
-  els.carryTens.textContent = state.work.carry === null ? '\u00a0' : state.work.carry;
-  els.carryOnes.textContent = '\u00a0';
-  els.previewHundreds.textContent = currentIndex >= 2 && answerDigits[0] !== ' ' ? answerDigits[0] : '\u00a0';
-  els.previewTens.textContent = state.work.tensDigit === null ? '\u00a0' : state.work.tensDigit;
-  els.previewOnes.textContent = state.work.onesDigit === null ? '?' : state.work.onesDigit;
-
-  const inputSettings = {
-    ones: { min: 0, max: 9, button: '一のくらいをかく', label: '一のくらいにかくかず' },
-    carry: { min: 0, max: 1, button: 'メモをかく', label: '十のくらいの上にかくかず' },
-    tens: { min: 0, max: 9, button: '十のくらいをかく', label: '十のくらいにかくかず' },
-    answer: { min: 0, max: 199, button: 'こたえをかく', label: 'さいごのこたえ' }
-  }[state.currentStep];
-
-  els.answerInput.min = String(inputSettings.min);
-  els.answerInput.max = String(inputSettings.max);
   els.answerInput.value = '';
-  els.answerButton.textContent = inputSettings.button;
-  els.answerInput.setAttribute('aria-label', inputSettings.label);
+  drawGuideLines();
 }
 
 function renderProgress() {
@@ -213,8 +214,6 @@ function setFeedback(message, type = '') {
 
 function nextProblem() {
   state.currentProblem = createCarryProblem();
-  state.currentStep = 'ones';
-  resetWork();
   renderProblem();
   if (!els.rewardModal.hidden) return;
   els.answerInput.focus();
@@ -257,59 +256,16 @@ function completeProblem() {
   nextProblem();
 }
 
-function moveToStep(step, message) {
-  state.currentStep = step;
-  renderStep();
-  setFeedback(message, 'success');
-  els.answerInput.focus();
-}
-
 function handleAnswer(event) {
   event.preventDefault();
   const userAnswer = Number(els.answerInput.value);
-
-  if (state.currentStep === 'ones') {
-    if (userAnswer === state.currentProblem.onesDigit) {
-      state.work.onesDigit = userAnswer;
-      moveToStep('carry', '一のくらい、できたね。つぎはくり上がりメモをかこう。');
-      return;
-    }
-
-    setFeedback(`${state.currentProblem.onesSum}の一のくらいにかくかずを入れてね。`, 'error');
-    els.answerInput.select();
-    return;
-  }
-
-  if (state.currentStep === 'carry') {
-    if (userAnswer === state.currentProblem.carry) {
-      state.work.carry = userAnswer;
-      moveToStep('tens', 'メモできたね。つぎは十のくらいをたそう。');
-      return;
-    }
-
-    setFeedback('くり上がりメモは、10のまとまりのかずだよ。', 'error');
-    els.answerInput.select();
-    return;
-  }
-
-  if (state.currentStep === 'tens') {
-    if (userAnswer === state.currentProblem.tensDigit) {
-      state.work.tensDigit = userAnswer;
-      moveToStep('answer', '十のくらい、できたね。さいごにこたえをぜんぶかこう。');
-      return;
-    }
-
-    setFeedback('十のくらいどうしと、メモの1をたしてみよう。', 'error');
-    els.answerInput.select();
-    return;
-  }
 
   if (userAnswer === state.currentProblem.answer) {
     completeProblem();
     return;
   }
 
-  setFeedback('下にできたかずを、左からじゅんにぜんぶかこう。', 'error');
+  setFeedback('もういちど、ひっさんメモを見ながらこたえを入れてね。', 'error');
   els.answerInput.select();
 }
 
@@ -340,16 +296,23 @@ function closeModal() {
 
 els.answerForm.addEventListener('submit', handleAnswer);
 els.newProblemButton.addEventListener('click', () => {
-  setFeedback('もんだいをかえたよ。まずは一のくらいからやろう。');
+  setFeedback('もんだいをかえたよ。ひっさんメモに書いてから、こたえを入れよう。');
   nextProblem();
 });
 els.resetRunButton.addEventListener('click', resetRun);
 els.resetDexButton.addEventListener('click', resetDex);
 els.closeModalButton.addEventListener('click', closeModal);
+els.clearWritingButton.addEventListener('click', drawGuideLines);
+els.writingPad.addEventListener('pointerdown', startDrawing);
+els.writingPad.addEventListener('pointermove', draw);
+els.writingPad.addEventListener('pointerup', stopDrawing);
+els.writingPad.addEventListener('pointercancel', stopDrawing);
+els.writingPad.addEventListener('pointerleave', stopDrawing);
 els.rewardModal.addEventListener('click', (event) => {
   if (event.target === els.rewardModal) closeModal();
 });
 
+setupWritingPad();
 renderProgress();
 renderDex();
 renderLastReward();
