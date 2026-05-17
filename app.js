@@ -22,6 +22,7 @@ const els = {
   progressBar: document.querySelector('#progress-bar'),
   answerForm: document.querySelector('#answer-form'),
   answerInput: document.querySelector('#answer-input'),
+  answerButton: document.querySelector('#answer-button'),
   feedback: document.querySelector('#feedback'),
   newProblemButton: document.querySelector('#new-problem-button'),
   resetRunButton: document.querySelector('#reset-run-button'),
@@ -35,8 +36,15 @@ const els = {
   modalTitle: document.querySelector('#modal-title'),
   modalDescription: document.querySelector('#modal-description'),
   closeModalButton: document.querySelector('#close-modal-button'),
-  carryTens: document.querySelector('#carry-tens'),
-  carryOnes: document.querySelector('#carry-ones'),
+  stepOnes: document.querySelector('#step-ones'),
+  stepCarry: document.querySelector('#step-carry'),
+  stepTens: document.querySelector('#step-tens'),
+  onesExpression: document.querySelector('#ones-expression'),
+  carryExplanation: document.querySelector('#carry-explanation'),
+  tensExpression: document.querySelector('#tens-expression'),
+  previewHundreds: document.querySelector('#preview-hundreds'),
+  previewTens: document.querySelector('#preview-tens'),
+  previewOnes: document.querySelector('#preview-ones'),
   addendATens: document.querySelector('#addend-a-tens'),
   addendAOnes: document.querySelector('#addend-a-ones'),
   addendBTens: document.querySelector('#addend-b-tens'),
@@ -45,6 +53,7 @@ const els = {
 
 const state = {
   currentProblem: null,
+  currentStep: 'ones',
   streak: 0,
   ownedIds: loadDex(),
   lastRewardId: null
@@ -76,7 +85,13 @@ function createCarryProblem() {
     b = randomInt(10, 99);
   } while ((a % 10) + (b % 10) < 10);
 
-  return { a, b, answer: a + b };
+  const answer = a + b;
+  const onesSum = (a % 10) + (b % 10);
+  const onesDigit = onesSum % 10;
+  const carry = Math.floor(onesSum / 10);
+  const upperDigits = Math.floor(answer / 10);
+
+  return { a, b, answer, onesSum, onesDigit, carry, upperDigits };
 }
 
 function splitDigits(value) {
@@ -86,14 +101,35 @@ function splitDigits(value) {
 function renderProblem() {
   const [aTens, aOnes] = splitDigits(state.currentProblem.a);
   const [bTens, bOnes] = splitDigits(state.currentProblem.b);
-  const hasHundredsCarry = state.currentProblem.answer >= 100;
 
   els.addendATens.textContent = aTens;
   els.addendAOnes.textContent = aOnes;
   els.addendBTens.textContent = bTens;
   els.addendBOnes.textContent = bOnes;
-  els.carryTens.textContent = hasHundredsCarry ? '1' : '\u00a0';
-  els.carryOnes.textContent = '1';
+  els.onesExpression.textContent = `${aOnes} + ${bOnes} = ?`;
+  els.carryExplanation.textContent = `${aOnes} + ${bOnes} = ${state.currentProblem.onesSum}。一の位には${state.currentProblem.onesDigit}を書いて、十の位へ${state.currentProblem.carry}をくり上げます。`;
+  els.tensExpression.textContent = `${aTens} + ${bTens} + ${state.currentProblem.carry} = ?`;
+  renderStep();
+}
+
+function renderStep() {
+  const isOnesStep = state.currentStep === 'ones';
+  const answerDigits = String(state.currentProblem.answer).padStart(3, ' ');
+
+  els.stepOnes.classList.toggle('active', isOnesStep);
+  els.stepOnes.classList.toggle('done', !isOnesStep);
+  els.stepCarry.classList.toggle('active', !isOnesStep);
+  els.stepCarry.classList.toggle('done', !isOnesStep);
+  els.stepTens.classList.toggle('active', !isOnesStep);
+
+  els.previewHundreds.textContent = isOnesStep ? '\u00a0' : answerDigits[0].replace(' ', '\u00a0');
+  els.previewTens.textContent = isOnesStep ? '\u00a0' : answerDigits[1];
+  els.previewOnes.textContent = isOnesStep ? '?' : state.currentProblem.onesDigit;
+  els.answerInput.min = isOnesStep ? '0' : '1';
+  els.answerInput.max = isOnesStep ? '9' : '19';
+  els.answerInput.value = '';
+  els.answerButton.textContent = isOnesStep ? '一の位をこたえる' : '十の位をこたえる';
+  els.answerInput.setAttribute('aria-label', isOnesStep ? '一の位に書く数字' : '十の位以上に書く数字');
 }
 
 function renderProgress() {
@@ -146,8 +182,9 @@ function setFeedback(message, type = '') {
 
 function nextProblem() {
   state.currentProblem = createCarryProblem();
-  els.answerInput.value = '';
+  state.currentStep = 'ones';
   renderProblem();
+  if (!els.rewardModal.hidden) return;
   els.answerInput.focus();
 }
 
@@ -174,26 +211,44 @@ function awardMonster() {
   renderLastReward();
 }
 
+function completeProblem() {
+  state.streak += 1;
+  renderProgress();
+
+  if (state.streak >= RUN_TARGET) {
+    setFeedback('10問クリア！新しい仲間がやってきたよ。', 'success');
+    awardMonster();
+  } else {
+    setFeedback(`正解！答えは${state.currentProblem.answer}。${RUN_TARGET}問まであと${RUN_TARGET - state.streak}問。`, 'success');
+  }
+
+  nextProblem();
+}
+
 function handleAnswer(event) {
   event.preventDefault();
   const userAnswer = Number(els.answerInput.value);
 
-  if (userAnswer === state.currentProblem.answer) {
-    state.streak += 1;
-    renderProgress();
-
-    if (state.streak >= RUN_TARGET) {
-      setFeedback('10問クリア！新しい仲間がやってきたよ。', 'success');
-      awardMonster();
-    } else {
-      setFeedback(`正解！${RUN_TARGET}問まであと${RUN_TARGET - state.streak}問。`, 'success');
+  if (state.currentStep === 'ones') {
+    if (userAnswer === state.currentProblem.onesDigit) {
+      state.currentStep = 'tens';
+      renderStep();
+      setFeedback(`一の位は正解！${state.currentProblem.onesSum}だから、${state.currentProblem.carry}を十の位へくり上げよう。`, 'success');
+      els.answerInput.focus();
+      return;
     }
 
-    nextProblem();
+    setFeedback(`${state.currentProblem.onesSum}の一の位に書く数字を考えてみよう。10のまとまりは十の位へくり上げるよ。`, 'error');
+    els.answerInput.select();
     return;
   }
 
-  setFeedback('惜しい！一の位から足して、繰り上がりの1を忘れずにもう一度。', 'error');
+  if (userAnswer === state.currentProblem.upperDigits) {
+    completeProblem();
+    return;
+  }
+
+  setFeedback('惜しい！十の位どうしを足して、くり上がりの1も足してみよう。', 'error');
   els.answerInput.select();
 }
 
@@ -224,7 +279,7 @@ function closeModal() {
 
 els.answerForm.addEventListener('submit', handleAnswer);
 els.newProblemButton.addEventListener('click', () => {
-  setFeedback('問題を変更しました。');
+  setFeedback('問題を変更しました。まずは一の位から計算しよう。');
   nextProblem();
 });
 els.resetRunButton.addEventListener('click', resetRun);

@@ -36,22 +36,47 @@
 
           <div class="math-card" aria-live="polite">
             <div class="vertical-sum" aria-label="2桁同士の足し算">
-              <div class="carry-row">
-                <span id="carry-tens" class="carry-slot">&nbsp;</span>
-                <span id="carry-ones" class="carry-slot">&nbsp;</span>
-              </div>
               <div class="number-row"><span id="addend-a-tens">0</span><span id="addend-a-ones">0</span></div>
               <div class="number-row plus-row"><span class="plus-sign">+</span><span id="addend-b-tens">0</span><span id="addend-b-ones">0</span></div>
               <div class="answer-line" aria-hidden="true"></div>
+              <div class="answer-preview" aria-label="途中の答え">
+                <span id="preview-hundreds" class="preview-digit">&nbsp;</span>
+                <span id="preview-tens" class="preview-digit">&nbsp;</span>
+                <span id="preview-ones" class="preview-digit">?</span>
+              </div>
             </div>
 
             <form id="answer-form" class="answer-form">
-              <label for="answer-input">答えを入力</label>
+              <ol class="step-list" aria-label="筆算の手順">
+                <li id="step-ones" class="step-card active">
+                  <span class="step-number">1</span>
+                  <div>
+                    <strong>一の位を計算</strong>
+                    <p id="ones-expression">0 + 0 = ?</p>
+                    <label for="answer-input">一の位に書く数字は？</label>
+                  </div>
+                </li>
+                <li id="step-carry" class="step-card">
+                  <span class="step-number">2</span>
+                  <div>
+                    <strong>繰り上がりを確認</strong>
+                    <p id="carry-explanation">10をこえたら、十の位へ1をくり上げます。</p>
+                  </div>
+                </li>
+                <li id="step-tens" class="step-card">
+                  <span class="step-number">3</span>
+                  <div>
+                    <strong>十の位を計算</strong>
+                    <p id="tens-expression">0 + 0 + 1 = ?</p>
+                    <label for="answer-input">十の位以上に書く数字は？</label>
+                  </div>
+                </li>
+              </ol>
               <div class="answer-row">
-                <input id="answer-input" name="answer" type="number" min="20" max="198" inputmode="numeric" autocomplete="off" required />
-                <button class="primary-button" type="submit">こたえる</button>
+                <input id="answer-input" name="answer" type="number" min="0" max="19" inputmode="numeric" autocomplete="off" required />
+                <button id="answer-button" class="primary-button" type="submit">一の位をこたえる</button>
               </div>
-              <p id="feedback" class="feedback" role="status">答えを入れて「こたえる」を押してね。</p>
+              <p id="feedback" class="feedback" role="status">まずは一の位から計算しよう。</p>
             </form>
           </div>
 

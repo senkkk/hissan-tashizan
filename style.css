@@ -135,7 +135,7 @@ h2 { margin-bottom: 0; }
 }
 
 .vertical-sum {
-  width: 180px;
+  width: 220px;
   margin: 0 auto;
   color: #111827;
   font-family: "Courier New", monospace;
@@ -144,15 +144,6 @@ h2 { margin-bottom: 0; }
   text-align: right;
 }
 
-.carry-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 1.25rem;
-  padding-right: 2px;
-  color: var(--danger);
-  font-size: 1.2rem;
-  line-height: 1;
-}
 
 .number-row {
   display: grid;
@@ -175,6 +166,83 @@ h2 { margin-bottom: 0; }
   margin-top: 4px;
   border-radius: 99px;
   background: var(--ink);
+}
+
+.answer-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 3.6rem;
+  color: var(--success);
+  letter-spacing: 0.08em;
+}
+
+.preview-digit {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.2em;
+}
+
+
+.step-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.step-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  color: var(--muted);
+}
+
+.step-card.active {
+  border-color: var(--secondary);
+  background: #f3f6ff;
+  color: var(--ink);
+}
+
+.step-card.done {
+  border-color: rgba(40, 166, 118, 0.35);
+  background: #effbf6;
+  color: var(--ink);
+}
+
+.step-card p {
+  margin: 4px 0 8px;
+  line-height: 1.5;
+}
+
+.step-card label {
+  margin-bottom: 0;
+}
+
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.step-card.active .step-number {
+  background: var(--secondary);
+  color: white;
+}
+
+.step-card.done .step-number {
+  background: var(--success);
+  color: white;
 }
 
 .answer-form label {
