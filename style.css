@@ -145,15 +145,29 @@ h2 { margin-bottom: 0; }
 }
 
 
+.carry-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 1.8rem;
+  color: var(--primary);
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+}
+
+.carry-digit {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.2em;
+}
+
 .number-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   letter-spacing: 0.1em;
 }
 
 .plus-row {
   position: relative;
-  padding-left: 28px;
 }
 
 .plus-sign {

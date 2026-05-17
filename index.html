@@ -10,17 +10,17 @@
     <main class="app-shell">
       <section class="hero" aria-labelledby="game-title">
         <div>
-          <p class="eyebrow">2桁の繰り上がり筆算バトル</p>
+          <p class="eyebrow">2けたのくり上がりバトル</p>
           <h1 id="game-title">ヒッサン・コレクターズ</h1>
           <p class="lead">
-            2桁＋2桁の筆算を10問クリアすると、ふしぎな「けいさんモンスター」をゲット！
-            何度も挑戦して図鑑コンプリートを目指そう。
+            2けた＋2けたを10もんクリアすると、ふしぎな「けいさんモンスター」をゲット！
+            なんどもやって、ぜんぶのモンスターにあおう。
           </p>
         </div>
-        <div class="hero-card" aria-label="今回の挑戦状況">
-          <span class="hero-card__label">今回のクリア数</span>
+        <div class="hero-card" aria-label="いまのクリアかず">
+          <span class="hero-card__label">いまのクリアかず</span>
           <strong><span id="streak-count">0</span>/10</strong>
-          <small>10問正解でゲットチャンス</small>
+          <small>10もん正かいでゲットチャンス</small>
         </div>
       </section>
 
@@ -29,17 +29,22 @@
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Challenge</p>
-              <h2 id="problem-title">筆算問題</h2>
+              <h2 id="problem-title">もんだい</h2>
             </div>
-            <button id="new-problem-button" class="ghost-button" type="button">問題をかえる</button>
+            <button id="new-problem-button" class="ghost-button" type="button">もんだいをかえる</button>
           </div>
 
           <div class="math-card" aria-live="polite">
-            <div class="vertical-sum" aria-label="2桁同士の足し算">
-              <div class="number-row"><span id="addend-a-tens">0</span><span id="addend-a-ones">0</span></div>
-              <div class="number-row plus-row"><span class="plus-sign">+</span><span id="addend-b-tens">0</span><span id="addend-b-ones">0</span></div>
+            <div class="vertical-sum" aria-label="2けたどうしの足しざん">
+              <div class="carry-row" aria-label="くり上がりメモ">
+                <span id="carry-hundreds" class="carry-digit">&nbsp;</span>
+                <span id="carry-tens" class="carry-digit">&nbsp;</span>
+                <span id="carry-ones" class="carry-digit">&nbsp;</span>
+              </div>
+              <div class="number-row"><span aria-hidden="true">&nbsp;</span><span id="addend-a-tens">0</span><span id="addend-a-ones">0</span></div>
+              <div class="number-row plus-row"><span class="plus-sign">+</span><span aria-hidden="true">&nbsp;</span><span id="addend-b-tens">0</span><span id="addend-b-ones">0</span></div>
               <div class="answer-line" aria-hidden="true"></div>
-              <div class="answer-preview" aria-label="途中の答え">
+              <div class="answer-preview" aria-label="こたえ">
                 <span id="preview-hundreds" class="preview-digit">&nbsp;</span>
                 <span id="preview-tens" class="preview-digit">&nbsp;</span>
                 <span id="preview-ones" class="preview-digit">?</span>
@@ -47,53 +52,62 @@
             </div>
 
             <form id="answer-form" class="answer-form">
-              <ol class="step-list" aria-label="筆算の手順">
+              <ol class="step-list" aria-label="やるじゅんばん">
                 <li id="step-ones" class="step-card active">
                   <span class="step-number">1</span>
                   <div>
-                    <strong>一の位を計算</strong>
+                    <strong>一のくらい</strong>
                     <p id="ones-expression">0 + 0 = ?</p>
-                    <label for="answer-input">一の位に書く数字は？</label>
+                    <label for="answer-input">一のくらいにかくかず</label>
                   </div>
                 </li>
                 <li id="step-carry" class="step-card">
                   <span class="step-number">2</span>
                   <div>
-                    <strong>繰り上がりを確認</strong>
-                    <p id="carry-explanation">10をこえたら、十の位へ1をくり上げます。</p>
+                    <strong>くり上がりメモ</strong>
+                    <p id="carry-expression">くり上がりは？</p>
+                    <label for="answer-input">十のくらいの上にかくかず</label>
                   </div>
                 </li>
                 <li id="step-tens" class="step-card">
                   <span class="step-number">3</span>
                   <div>
-                    <strong>十の位を計算</strong>
+                    <strong>十のくらい</strong>
                     <p id="tens-expression">0 + 0 + 1 = ?</p>
-                    <label for="answer-input">十の位以上に書く数字は？</label>
+                    <label for="answer-input">十のくらいにかくかず</label>
+                  </div>
+                </li>
+                <li id="step-answer" class="step-card">
+                  <span class="step-number">4</span>
+                  <div>
+                    <strong>さいごのこたえ</strong>
+                    <p id="answer-expression">こたえをぜんぶかこう。</p>
+                    <label for="answer-input">こたえ</label>
                   </div>
                 </li>
               </ol>
               <div class="answer-row">
-                <input id="answer-input" name="answer" type="number" min="0" max="19" inputmode="numeric" autocomplete="off" required />
-                <button id="answer-button" class="primary-button" type="submit">一の位をこたえる</button>
+                <input id="answer-input" name="answer" type="number" min="0" max="199" inputmode="numeric" autocomplete="off" required />
+                <button id="answer-button" class="primary-button" type="submit">かく</button>
               </div>
-              <p id="feedback" class="feedback" role="status">まずは一の位から計算しよう。</p>
+              <p id="feedback" class="feedback" role="status">まずは一のくらいからやろう。</p>
             </form>
           </div>
 
-          <div class="progress-wrap" aria-label="10問クリアまでの進捗">
+          <div class="progress-wrap" aria-label="10もんクリアまで">
             <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-            <p>あと <strong id="remaining-count">10</strong> 問でゲットチャンス！</p>
+            <p>あと <strong id="remaining-count">10</strong> もんでゲットチャンス！</p>
           </div>
         </article>
 
         <aside class="panel reward-panel" aria-labelledby="reward-title">
           <p class="eyebrow">Reward</p>
-          <h2 id="reward-title">ゲットしたキャラクター</h2>
+          <h2 id="reward-title">ゲットしたモンスター</h2>
           <div id="last-reward" class="last-reward empty">
             <div class="monster-emoji" aria-hidden="true">?</div>
-            <p>まだキャラクターはいません。10問クリアして仲間を見つけよう！</p>
+            <p>まだモンスターはいません。10もんクリアして、なかまを見つけよう！</p>
           </div>
-          <button id="reset-run-button" class="ghost-button full" type="button">今回の挑戦をリセット</button>
+          <button id="reset-run-button" class="ghost-button full" type="button">いまのチャレンジをリセット</button>
         </aside>
       </section>
 
@@ -101,12 +115,12 @@
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Collection</p>
-            <h2 id="dex-title">けいさんモンスター図鑑</h2>
+            <h2 id="dex-title">けいさんモンスターずかん</h2>
           </div>
-          <div class="dex-count"><span id="owned-count">0</span>/<span id="total-count">0</span> 発見</div>
+          <div class="dex-count"><span id="owned-count">0</span>/<span id="total-count">0</span> 見つけた</div>
         </div>
         <div id="dex-grid" class="dex-grid" aria-live="polite"></div>
-        <button id="reset-dex-button" class="danger-button" type="button">図鑑データをリセット</button>
+        <button id="reset-dex-button" class="danger-button" type="button">ずかんをリセット</button>
       </section>
     </main>
 
@@ -114,12 +128,12 @@
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <p class="eyebrow">Get!</p>
         <div id="modal-emoji" class="monster-emoji big" aria-hidden="true">🐣</div>
-        <h2 id="modal-title">新しい仲間をゲット！</h2>
+        <h2 id="modal-title">あたらしいなかまをゲット！</h2>
         <p id="modal-description"></p>
-        <button id="close-modal-button" class="primary-button" type="button">図鑑に登録する</button>
+        <button id="close-modal-button" class="primary-button" type="button">ずかんにもどる</button>
       </div>
     </div>
 
-    <script src="./app.js" defer></script>
+    <script src="./app.js"></script>
   </body>
 </html>

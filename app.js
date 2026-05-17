@@ -1,19 +1,21 @@
 const RUN_TARGET = 10;
 const STORAGE_KEY = 'hissanCollectorsDex';
 
+const steps = ['ones', 'carry', 'tens', 'answer'];
+
 const monsters = [
-  { id: 'carrycub', name: 'くりあがリス', emoji: '🐿️', description: '1をとなりの位へ運ぶのが得意な、しっかり者の森モンスター。' },
-  { id: 'tenpuff', name: 'テンテンワタ', emoji: '☁️', description: '10のまとまりをふわふわ集めて、空に答えを描く。' },
-  { id: 'sumander', name: 'タスノコ', emoji: '🦎', description: '足し算が成功するとしっぽの炎が明るくなる。' },
-  { id: 'digitfin', name: 'ケタイルカ', emoji: '🐬', description: '一の位と十の位の波を読んで、すいすい計算する。' },
-  { id: 'plusbun', name: 'プラスピョン', emoji: '🐰', description: '正解の音を聞くと高くジャンプする元気な相棒。' },
-  { id: 'abacusowl', name: 'そろばんフクロウ', emoji: '🦉', description: '夜でも位取りを見失わない、図鑑の知恵袋。' },
-  { id: 'numberdragon', name: 'ナンバードラゴン', emoji: '🐉', description: '大きな答えほど翼がきらきら輝くレアモンスター。' },
-  { id: 'pencilion', name: 'エンピツライオン', emoji: '🦁', description: '筆算の線をまっすぐ引く、勇敢なリーダー。' },
-  { id: 'eraserpanda', name: 'ケシゴムパンダ', emoji: '🐼', description: '間違えてもやり直せるよう、やさしく見守る。' },
-  { id: 'starcarry', name: 'スターキャリー', emoji: '⭐', description: '10問連続の努力から生まれる、きらめく達成のしるし。' },
-  { id: 'calcrab', name: 'カゾエガニ', emoji: '🦀', description: 'はさみで数字をつまんで、10のまとまりを作る。' },
-  { id: 'rainbowmole', name: 'ニジモグラ', emoji: '🌈', description: '地面の下から答えへの近道を掘り当てる。' }
+  { id: 'carrycub', name: 'くりあがリス', emoji: '🐿️', description: '1をとなりへはこぶのがとくいな、森のモンスター。' },
+  { id: 'tenpuff', name: 'テンテンワタ', emoji: '☁️', description: '10のまとまりをふわふわあつめて、空にこたえをかくよ。' },
+  { id: 'sumander', name: 'タスノコ', emoji: '🦎', description: '足しざんができると、しっぽの火があかるくなるよ。' },
+  { id: 'digitfin', name: 'ケタイルカ', emoji: '🐬', description: '一のくらいと十のくらいのなみをよんで、すいすいすすむよ。' },
+  { id: 'plusbun', name: 'プラスピョン', emoji: '🐰', description: '正かいの音をきくと、たかくジャンプするげんきななかま。' },
+  { id: 'abacusowl', name: 'そろばんフクロウ', emoji: '🦉', description: 'よるでもくらいを見うしなわない、かしこいフクロウ。' },
+  { id: 'numberdragon', name: 'ナンバードラゴン', emoji: '🐉', description: '大きなこたえほど、つばさがきらきらひかるよ。' },
+  { id: 'pencilion', name: 'エンピツライオン', emoji: '🦁', description: 'ヒッサンのせんをまっすぐひく、ゆうかんなリーダー。' },
+  { id: 'eraserpanda', name: 'ケシゴムパンダ', emoji: '🐼', description: 'まちがえてもだいじょうぶ。やさしく見まもるよ。' },
+  { id: 'starcarry', name: 'スターキャリー', emoji: '⭐', description: '10もんがんばるとあらわれる、きらきらのしるし。' },
+  { id: 'calcrab', name: 'カゾエガニ', emoji: '🦀', description: 'はさみですうじをつまんで、10のまとまりをつくるよ。' },
+  { id: 'rainbowmole', name: 'ニジモグラ', emoji: '🌈', description: '土の下から、こたえへのみちをほりあてるよ。' }
 ];
 
 const els = {
@@ -39,16 +41,28 @@ const els = {
   stepOnes: document.querySelector('#step-ones'),
   stepCarry: document.querySelector('#step-carry'),
   stepTens: document.querySelector('#step-tens'),
+  stepAnswer: document.querySelector('#step-answer'),
   onesExpression: document.querySelector('#ones-expression'),
-  carryExplanation: document.querySelector('#carry-explanation'),
+  carryExpression: document.querySelector('#carry-expression'),
   tensExpression: document.querySelector('#tens-expression'),
+  answerExpression: document.querySelector('#answer-expression'),
   previewHundreds: document.querySelector('#preview-hundreds'),
   previewTens: document.querySelector('#preview-tens'),
   previewOnes: document.querySelector('#preview-ones'),
+  carryHundreds: document.querySelector('#carry-hundreds'),
+  carryTens: document.querySelector('#carry-tens'),
+  carryOnes: document.querySelector('#carry-ones'),
   addendATens: document.querySelector('#addend-a-tens'),
   addendAOnes: document.querySelector('#addend-a-ones'),
   addendBTens: document.querySelector('#addend-b-tens'),
   addendBOnes: document.querySelector('#addend-b-ones')
+};
+
+const stepEls = {
+  ones: els.stepOnes,
+  carry: els.stepCarry,
+  tens: els.stepTens,
+  answer: els.stepAnswer
 };
 
 const state = {
@@ -56,7 +70,8 @@ const state = {
   currentStep: 'ones',
   streak: 0,
   ownedIds: loadDex(),
-  lastRewardId: null
+  lastRewardId: null,
+  work: { onesDigit: null, carry: null, tensDigit: null }
 };
 
 function loadDex() {
@@ -89,13 +104,18 @@ function createCarryProblem() {
   const onesSum = (a % 10) + (b % 10);
   const onesDigit = onesSum % 10;
   const carry = Math.floor(onesSum / 10);
-  const upperDigits = Math.floor(answer / 10);
+  const tensSum = Math.floor(a / 10) + Math.floor(b / 10) + carry;
+  const tensDigit = tensSum % 10;
 
-  return { a, b, answer, onesSum, onesDigit, carry, upperDigits };
+  return { a, b, answer, onesSum, onesDigit, carry, tensSum, tensDigit };
 }
 
 function splitDigits(value) {
   return String(value).padStart(2, '0').split('');
+}
+
+function resetWork() {
+  state.work = { onesDigit: null, carry: null, tensDigit: null };
 }
 
 function renderProblem() {
@@ -107,29 +127,40 @@ function renderProblem() {
   els.addendBTens.textContent = bTens;
   els.addendBOnes.textContent = bOnes;
   els.onesExpression.textContent = `${aOnes} + ${bOnes} = ?`;
-  els.carryExplanation.textContent = `${aOnes} + ${bOnes} = ${state.currentProblem.onesSum}。一の位には${state.currentProblem.onesDigit}を書いて、十の位へ${state.currentProblem.carry}をくり上げます。`;
-  els.tensExpression.textContent = `${aTens} + ${bTens} + ${state.currentProblem.carry} = ?`;
+  els.carryExpression.textContent = '10のまとまりは、十のくらいの上にかくよ。';
+  els.tensExpression.textContent = `${aTens} + ${bTens} + メモ = ?`;
+  els.answerExpression.textContent = '下にできたかずを、ぜんぶかこう。';
   renderStep();
 }
 
 function renderStep() {
-  const isOnesStep = state.currentStep === 'ones';
+  const currentIndex = steps.indexOf(state.currentStep);
   const answerDigits = String(state.currentProblem.answer).padStart(3, ' ');
 
-  els.stepOnes.classList.toggle('active', isOnesStep);
-  els.stepOnes.classList.toggle('done', !isOnesStep);
-  els.stepCarry.classList.toggle('active', !isOnesStep);
-  els.stepCarry.classList.toggle('done', !isOnesStep);
-  els.stepTens.classList.toggle('active', !isOnesStep);
+  steps.forEach((step, index) => {
+    stepEls[step].classList.toggle('active', step === state.currentStep);
+    stepEls[step].classList.toggle('done', index < currentIndex);
+  });
 
-  els.previewHundreds.textContent = isOnesStep ? '\u00a0' : answerDigits[0].replace(' ', '\u00a0');
-  els.previewTens.textContent = isOnesStep ? '\u00a0' : answerDigits[1];
-  els.previewOnes.textContent = isOnesStep ? '?' : state.currentProblem.onesDigit;
-  els.answerInput.min = isOnesStep ? '0' : '1';
-  els.answerInput.max = isOnesStep ? '9' : '19';
+  els.carryHundreds.textContent = '\u00a0';
+  els.carryTens.textContent = state.work.carry === null ? '\u00a0' : state.work.carry;
+  els.carryOnes.textContent = '\u00a0';
+  els.previewHundreds.textContent = currentIndex >= 2 && answerDigits[0] !== ' ' ? answerDigits[0] : '\u00a0';
+  els.previewTens.textContent = state.work.tensDigit === null ? '\u00a0' : state.work.tensDigit;
+  els.previewOnes.textContent = state.work.onesDigit === null ? '?' : state.work.onesDigit;
+
+  const inputSettings = {
+    ones: { min: 0, max: 9, button: '一のくらいをかく', label: '一のくらいにかくかず' },
+    carry: { min: 0, max: 1, button: 'メモをかく', label: '十のくらいの上にかくかず' },
+    tens: { min: 0, max: 9, button: '十のくらいをかく', label: '十のくらいにかくかず' },
+    answer: { min: 0, max: 199, button: 'こたえをかく', label: 'さいごのこたえ' }
+  }[state.currentStep];
+
+  els.answerInput.min = String(inputSettings.min);
+  els.answerInput.max = String(inputSettings.max);
   els.answerInput.value = '';
-  els.answerButton.textContent = isOnesStep ? '一の位をこたえる' : '十の位をこたえる';
-  els.answerInput.setAttribute('aria-label', isOnesStep ? '一の位に書く数字' : '十の位以上に書く数字');
+  els.answerButton.textContent = inputSettings.button;
+  els.answerInput.setAttribute('aria-label', inputSettings.label);
 }
 
 function renderProgress() {
@@ -147,7 +178,7 @@ function renderDex() {
       <article class="dex-card ${isOwned ? '' : 'locked'}">
         <div class="monster-emoji" aria-hidden="true">${isOwned ? monster.emoji : '?'}</div>
         <h3>No.${String(index + 1).padStart(2, '0')} ${isOwned ? monster.name : '????'}</h3>
-        <p>${isOwned ? monster.description : '10問クリアして出会ってみよう。'}</p>
+        <p>${isOwned ? monster.description : '10もんクリアして、あいにいこう。'}</p>
       </article>
     `;
   }).join('');
@@ -160,7 +191,7 @@ function renderLastReward() {
     els.lastReward.className = 'last-reward empty';
     els.lastReward.innerHTML = `
       <div class="monster-emoji" aria-hidden="true">?</div>
-      <p>まだキャラクターはいません。10問クリアして仲間を見つけよう！</p>
+      <p>まだモンスターはいません。10もんクリアして、なかまを見つけよう！</p>
     `;
     return;
   }
@@ -183,6 +214,7 @@ function setFeedback(message, type = '') {
 function nextProblem() {
   state.currentProblem = createCarryProblem();
   state.currentStep = 'ones';
+  resetWork();
   renderProblem();
   if (!els.rewardModal.hidden) return;
   els.answerInput.focus();
@@ -216,13 +248,20 @@ function completeProblem() {
   renderProgress();
 
   if (state.streak >= RUN_TARGET) {
-    setFeedback('10問クリア！新しい仲間がやってきたよ。', 'success');
+    setFeedback('10もんクリア！あたらしいなかまがきたよ。', 'success');
     awardMonster();
   } else {
-    setFeedback(`正解！答えは${state.currentProblem.answer}。${RUN_TARGET}問まであと${RUN_TARGET - state.streak}問。`, 'success');
+    setFeedback(`正かい！こたえは${state.currentProblem.answer}。あと${RUN_TARGET - state.streak}もん。`, 'success');
   }
 
   nextProblem();
+}
+
+function moveToStep(step, message) {
+  state.currentStep = step;
+  renderStep();
+  setFeedback(message, 'success');
+  els.answerInput.focus();
 }
 
 function handleAnswer(event) {
@@ -231,36 +270,58 @@ function handleAnswer(event) {
 
   if (state.currentStep === 'ones') {
     if (userAnswer === state.currentProblem.onesDigit) {
-      state.currentStep = 'tens';
-      renderStep();
-      setFeedback(`一の位は正解！${state.currentProblem.onesSum}だから、${state.currentProblem.carry}を十の位へくり上げよう。`, 'success');
-      els.answerInput.focus();
+      state.work.onesDigit = userAnswer;
+      moveToStep('carry', '一のくらい、できたね。つぎはくり上がりメモをかこう。');
       return;
     }
 
-    setFeedback(`${state.currentProblem.onesSum}の一の位に書く数字を考えてみよう。10のまとまりは十の位へくり上げるよ。`, 'error');
+    setFeedback(`${state.currentProblem.onesSum}の一のくらいにかくかずを入れてね。`, 'error');
     els.answerInput.select();
     return;
   }
 
-  if (userAnswer === state.currentProblem.upperDigits) {
+  if (state.currentStep === 'carry') {
+    if (userAnswer === state.currentProblem.carry) {
+      state.work.carry = userAnswer;
+      moveToStep('tens', 'メモできたね。つぎは十のくらいをたそう。');
+      return;
+    }
+
+    setFeedback('くり上がりメモは、10のまとまりのかずだよ。', 'error');
+    els.answerInput.select();
+    return;
+  }
+
+  if (state.currentStep === 'tens') {
+    if (userAnswer === state.currentProblem.tensDigit) {
+      state.work.tensDigit = userAnswer;
+      moveToStep('answer', '十のくらい、できたね。さいごにこたえをぜんぶかこう。');
+      return;
+    }
+
+    setFeedback('十のくらいどうしと、メモの1をたしてみよう。', 'error');
+    els.answerInput.select();
+    return;
+  }
+
+  if (userAnswer === state.currentProblem.answer) {
     completeProblem();
     return;
   }
 
-  setFeedback('惜しい！十の位どうしを足して、くり上がりの1も足してみよう。', 'error');
+  setFeedback('下にできたかずを、左からじゅんにぜんぶかこう。', 'error');
   els.answerInput.select();
 }
 
 function resetRun() {
   state.streak = 0;
   renderProgress();
-  setFeedback('今回の挑戦をリセットしたよ。新しい問題から始めよう。');
+  setFeedback('いまのチャレンジをリセットしたよ。あたらしいもんだいからはじめよう。');
   nextProblem();
 }
 
 function resetDex() {
-  const ok = window.confirm('図鑑データをすべて消します。よろしいですか？');
+  const ok = window.confirm('ずかんをぜんぶけします。いいですか？');
   if (!ok) return;
 
   state.ownedIds.clear();
@@ -268,18 +329,18 @@ function resetDex() {
   saveDex();
   renderDex();
   renderLastReward();
-  setFeedback('図鑑データをリセットしました。');
+  setFeedback('ずかんをリセットしたよ。');
 }
 
 function closeModal() {
   els.rewardModal.hidden = true;
-  setFeedback('図鑑に登録完了！次の10問にも挑戦しよう。', 'success');
+  setFeedback('ずかんにのったよ！つぎの10もんにもチャレンジしよう。', 'success');
   els.answerInput.focus();
 }
 
 els.answerForm.addEventListener('submit', handleAnswer);
 els.newProblemButton.addEventListener('click', () => {
-  setFeedback('問題を変更しました。まずは一の位から計算しよう。');
+  setFeedback('もんだいをかえたよ。まずは一のくらいからやろう。');
   nextProblem();
 });
 els.resetRunButton.addEventListener('click', resetRun);
